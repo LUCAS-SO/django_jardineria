@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from django.http import HttpResponseTooManyRequests
+from django.http import HttpResponse
 import time
 
 class SimpleRateLimitMiddleware:
@@ -22,6 +22,6 @@ class SimpleRateLimitMiddleware:
         cache.set(key, data, timeout=self.WINDOW)
 
         if data["count"] > self.RATE:
-            return HttpResponseTooManyRequests("Too many requests")
+            return HttpResponse("Too many requests", status=429)
 
         return self.get_response(request)
