@@ -53,9 +53,9 @@ MIDDLEWARE = [
     # Seguridad & optimización para archivos estáticos
     'whitenoise.middleware.WhiteNoiseMiddleware',
     # Seguridad custom
-    'middleware.anti_bot.BlockBadUserAgentsMiddleware',
-    'middleware.rate_limit.SimpleRateLimitMiddleware',
-    'middleware.ip_blocker.MaliciousIPBlockerMiddleware',
+    'jobs.middleware.anti_bot.BlockBadUserAgentsMiddleware',
+    'jobs.middleware.rate_limit.SimpleRateLimitMiddleware',
+    'jobs.middleware.ip_blocker.MaliciousIPBlockerMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
