@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}UISE - Trabajo: Detalles {{ job.pk }}{% endblock %}
+
+{% block content %}
+
+{% load duration_filters %}
+
+<h2 class="text-xl font-semibold text-primary mb-2">
+    {{ job.date }} — {{ job.get_location_display }}
+</h2>
+
+<p class="text-gray-700 dark:text-gray-300 text-lg mb-2">
+    <strong>Duración:</strong> {{ job.duration|duration }}
+</p>
+
+<p class="text-gray-700 dark:text-gray-300 mb-6">
+    {{ job.description }}
+</p>
+
+<hr class="my-6 border-gray-300 dark:border-gray-700">
+
+<h3 class="text-2xl font-semibold text-primary mb-4">Fotos</h3>
+
+<div class="grid sm:grid-cols-2 gap-6">
+{% for photo in job.photos.all %}
+    <div class="rounded-xl border border-gray-300 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 shadow-sm">
+        
+        <p class="font-medium font-semibold text-secondary mb-2">
+            {{ photo.get_before_after_display }}
+        </p>
+
+        <img src="{{ photo.photo.url }}" class="rounded-lg shadow-md w-full object-cover">
+    </div>
+{% empty %}
+    <p class="text-gray-500 dark:text-gray-400 col-span-full">
+        No hay fotos para este trabajo.
+    </p>
+{% endfor %}
+</div>
+
+<a href="{% url 'job-list' %}"
+   class="inline-block mt-8 px-3 py-2 rounded-lg 
+text-secondary font-semibold 
+hover:bg-secondary/10 dark:hover:bg-secondary/20 
+transition">
+    Volver al listado
+</a>
+
+{% endblock %}

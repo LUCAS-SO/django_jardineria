@@ -1,0 +1,1 @@
+web: gunicorn jardineria_app.wsgi --chdir src
