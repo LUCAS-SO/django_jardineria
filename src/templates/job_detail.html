@@ -25,55 +25,31 @@
 <h3 class="text-2xl font-semibold text-primary mb-4">Galería</h3>
 
 <!-- ========================== -->
-<!-- CSS Swiper + PhotoSwipe + BeerSlider -->
+<!-- CSS Swiper -->
 <!-- ========================== -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.css"/>
 
 <!-- ========================== -->
-<!-- SWIPER PRINCIPAL -->
+<!-- SWIPER (optimizado con lazy loading) -->
 <!-- ========================== -->
-<div class="swiper mySwiper rounded-xl shadow-lg">
+<div class="swiper mySwiper rounded-xl shadow-lg select-none">
     <div class="swiper-wrapper">
 
         {% for photo in job.photos.all %}
         <div class="swiper-slide">
 
-            {% if photo.before_after == "before" %}
-                {# Buscar automáticamente la foto AFTER del mismo job #}
-                {% with after_photo=job.photos.all|dictsort:"before_after"|last %}
-                    {% if after_photo.before_after == "after" %}
-                    <!-- Slider Before / After -->
-                    <div class="beer-slider my-4" data-beer-label="Antes">
-                        <img src="{{ photo.photo.url }}" alt="Antes">
+            <!-- Lazy loading -->
+            <img 
+                data-src="{{ photo.photo.url }}" 
+                alt="Foto del trabajo"
+                class="swiper-lazy w-full h-auto object-cover rounded-xl"
+            >
 
-                        <div class="beer-reveal" data-beer-label="Después">
-                            <img src="{{ after_photo.photo.url }}" alt="Después">
-                        </div>
-                    </div>
-
-                    {% else %}
-                    <!-- BEFORE sin AFTER -->
-                    <a href="{{ photo.photo.url }}"
-                       data-pswp-width="1400"
-                       data-pswp-height="1000">
-                        <img src="{{ photo.photo.url }}" class="rounded-lg w-full object-cover"/>
-                    </a>
-                    {% endif %}
-                {% endwith %}
-
-            {% else %}
-            <!-- Foto normal -->
-            <a href="{{ photo.photo.url }}"
-               data-pswp-width="1400"
-               data-pswp-height="1000">
-                <img src="{{ photo.photo.url }}" class="rounded-lg w-full object-cover"/>
-            </a>
-            {% endif %}
-
+            <!-- Preloader minimal -->
+            <div class="swiper-lazy-preloader"></div>
         </div>
         {% endfor %}
+
     </div>
 
     <!-- CONTROLES -->
@@ -83,44 +59,35 @@
 </div>
 
 <!-- ========================== -->
-<!-- JS: Swiper + PhotoSwipe + BeerSlider -->
+<!-- JS Swiper -->
 <!-- ========================== -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.js"></script>
-
-<script type="module">
-    import PhotoSwipeLightbox from "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.min.js";
-
-    const lightbox = new PhotoSwipeLightbox({
-        gallery: '.swiper',
-        children: 'a',
-        pswpModule: () => import("https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.min.js")
-    });
-
-    lightbox.init();
-</script>
 
 <script>
-    // SWIPER
-    var swiper = new Swiper(".mySwiper", {
-        loop: true,
-        spaceBetween: 20,
-        pagination: {
-            el: ".swiper-pagination",
-            clickable: true
-        },
-        navigation: {
-            nextEl: ".swiper-button-next",
-            prevEl: ".swiper-button-prev"
-        }
-    });
+var swiper = new Swiper(".mySwiper", {
+    loop: true,
+    centeredSlides: true,
+    spaceBetween: 20,
 
-    // BEERSLIDER
-    window.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll('.beer-slider').forEach(slider => {
-            new BeerSlider(slider);
-        });
-    });
+    // LAZY LOAD OPTIMIZADO
+    lazy: {
+        loadPrevNext: true,
+        loadPrevNextAmount: 1,
+    },
+
+    pagination: {
+        el: ".swiper-pagination",
+        clickable: true
+    },
+
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev"
+    },
+
+    slidesPerView: 1,
+    speed: 500,
+});
 </script>
 
 <!-- BOTÓN VOLVER -->
