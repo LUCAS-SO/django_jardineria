@@ -83,9 +83,18 @@ class JobDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        job = self.object
+
         hours, minutes = format_minutes(self.object.duration)
         context["duration_hours"] = hours
         context["duration_minutes"] = minutes
+
+        context["has_before"] = job.photos.filter(before_after='before').exists()
+        context["has_after"] = job.photos.filter(before_after='after').exists()
+        context["has_both"] = (
+            context["has_before"] and context["has_after"]
+        )
+
         return context
 
 

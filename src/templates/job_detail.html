@@ -19,7 +19,12 @@
 
 <hr class="my-6 border-gray-300 dark:border-gray-700">
 
-<h3 class="text-2xl font-semibold text-primary mb-4">Galería</h3>
+<!-- =========================== -->
+<!-- TITULO + ETIQUETA ANTES/DESPUÉS -->
+<!-- =========================== -->
+<h3 class="text-2xl font-semibold text-primary mb-2 flex items-center gap-3">
+    Galería
+</h3>
 
 <!-- SWIPER CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
@@ -29,14 +34,19 @@
     <div class="swiper-wrapper">
 
         {% for photo in job.photos.all %}
-        <div class="swiper-slide flex justify-center items-center bg-black/10">
+        <div class="swiper-slide flex justify-center items-center bg-black/10 relative">
 
             <img 
-                src="{{ photo.photo.url }}" 
+                src="{{ photo.photo.url }}"
                 alt="Foto del trabajo"
                 class="w-full h-full object-contain rounded-xl"
                 loading="lazy"
             >
+
+            <!-- ETIQUETA ANTES/DESPUES -->
+            <span class="absolute top-2 right-2 px-2 py-1 text-xs font-semibold bg-black/60 text-white rounded">
+                {% if photo.before_after == "before" %}Antes{% else %}Después{% endif %}
+            </span>
 
         </div>
         {% endfor %}
