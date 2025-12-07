@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 {% load duration_filters %}
+
 {% block title %}UISE - Trabajo: Detalles {{ job.pk }}{% endblock %}
 
 {% block content %}
 
+<!-- ========================== -->
+<!-- CABECERA DEL TRABAJO -->
+<!-- ========================== -->
 <h2 class="text-xl font-semibold text-primary mb-2">
     {{ job.date }} — {{ job.get_location_display }}
 </h2>
@@ -20,85 +24,98 @@
 
 <h3 class="text-2xl font-semibold text-primary mb-4">Galería</h3>
 
-<!-- =========================== -->
-<!-- SWIPER CON TODAS LAS FOTOS -->
-<!-- =========================== -->
+<!-- ========================== -->
+<!-- CSS Swiper + PhotoSwipe + BeerSlider -->
+<!-- ========================== -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.css"/>
 
+<!-- ========================== -->
+<!-- SWIPER PRINCIPAL -->
+<!-- ========================== -->
 <div class="swiper mySwiper rounded-xl shadow-lg">
     <div class="swiper-wrapper">
 
         {% for photo in job.photos.all %}
         <div class="swiper-slide">
 
-            <!-- Si es BEFORE/AFTER → BeerSlider -->
             {% if photo.before_after == "before" %}
-                {% with after_photo=job.photos.all|get_after:photo %}
-                
-                {% if after_photo %}
-                <div class="beer-slider my-4" data-beer-label="Antes">
-                    <img src="{{ photo.photo.url }}" alt="Antes">
+                {# Buscar automáticamente la foto AFTER del mismo job #}
+                {% with after_photo=job.photos.all|dictsort:"before_after"|last %}
+                    {% if after_photo.before_after == "after" %}
+                    <!-- Slider Before / After -->
+                    <div class="beer-slider my-4" data-beer-label="Antes">
+                        <img src="{{ photo.photo.url }}" alt="Antes">
 
-                    <div class="beer-reveal" data-beer-label="Después">
-                        <img src="{{ after_photo.photo.url }}" alt="Después">
+                        <div class="beer-reveal" data-beer-label="Después">
+                            <img src="{{ after_photo.photo.url }}" alt="Después">
+                        </div>
                     </div>
-                </div>
-                {% else %}
+
+                    {% else %}
                     <!-- BEFORE sin AFTER -->
-                    <a href="{{ photo.photo.url }}" 
-                       data-pswp-width="1400" 
-                       data-pswp-height="1000"
-                       target="_blank">
+                    <a href="{{ photo.photo.url }}"
+                       data-pswp-width="1400"
+                       data-pswp-height="1000">
                         <img src="{{ photo.photo.url }}" class="rounded-lg w-full object-cover"/>
                     </a>
-                {% endif %}
-
+                    {% endif %}
                 {% endwith %}
 
             {% else %}
-                <!-- Foto común -->
-                <a href="{{ photo.photo.url }}" 
-                   data-pswp-width="1400" 
-                   data-pswp-height="1000"
-                   target="_blank">
-                    <img src="{{ photo.photo.url }}" class="rounded-lg w-full object-cover"/>
-                </a>
+            <!-- Foto normal -->
+            <a href="{{ photo.photo.url }}"
+               data-pswp-width="1400"
+               data-pswp-height="1000">
+                <img src="{{ photo.photo.url }}" class="rounded-lg w-full object-cover"/>
+            </a>
             {% endif %}
 
         </div>
         {% endfor %}
     </div>
 
-    <!-- Controles Swiper -->
+    <!-- CONTROLES -->
     <div class="swiper-pagination"></div>
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
 </div>
 
-<!-- ===================== -->
-<!-- PHOTO SWIPE (LIGHTBOX) -->
-<!-- ===================== -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.css"/>
+<!-- ========================== -->
+<!-- JS: Swiper + PhotoSwipe + BeerSlider -->
+<!-- ========================== -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.min.js" type="module"></script>
 <script type="module">
     import PhotoSwipeLightbox from "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.min.js";
 
     const lightbox = new PhotoSwipeLightbox({
-        gallery: '.swiper', 
+        gallery: '.swiper',
         children: 'a',
         pswpModule: () => import("https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.min.js")
     });
+
     lightbox.init();
 </script>
 
-<!-- ===================== -->
-<!-- BEERSLIDER (Before/After) -->
-<!-- ===================== -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.css">
-<script src="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.js"></script>
-
 <script>
+    // SWIPER
+    var swiper = new Swiper(".mySwiper", {
+        loop: true,
+        spaceBetween: 20,
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true
+        },
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev"
+        }
+    });
+
+    // BEERSLIDER
     window.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.beer-slider').forEach(slider => {
             new BeerSlider(slider);
@@ -106,26 +123,7 @@
     });
 </script>
 
-<!-- ===================== -->
-<!-- SWIPER CONFIG -->
-<!-- ===================== -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script>
-var swiper = new Swiper(".mySwiper", {
-    loop: true,
-    spaceBetween: 20,
-    pagination: {
-        el: ".swiper-pagination",
-        clickable: true
-    },
-    navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev"
-    }
-});
-</script>
-
-<!-- BTN VOLVER -->
+<!-- BOTÓN VOLVER -->
 <a href="{% url 'job-list' %}"
    class="inline-block mt-10 px-4 py-2 rounded-xl bg-secondary text-white font-semibold
           shadow-md hover:bg-secondary/90 active:scale-95 transition">
