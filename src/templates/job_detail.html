@@ -5,9 +5,6 @@
 
 {% block content %}
 
-<!-- ========================== -->
-<!-- CABECERA DEL TRABAJO -->
-<!-- ========================== -->
 <h2 class="text-xl font-semibold text-primary mb-2">
     {{ job.date }} — {{ job.get_location_display }}
 </h2>
@@ -24,29 +21,23 @@
 
 <h3 class="text-2xl font-semibold text-primary mb-4">Galería</h3>
 
-<!-- ========================== -->
-<!-- CSS Swiper -->
-<!-- ========================== -->
+<!-- SWIPER CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 
-<!-- ========================== -->
-<!-- SWIPER (optimizado con lazy loading) -->
-<!-- ========================== -->
-<div class="swiper mySwiper rounded-xl shadow-lg select-none">
+<!-- CONTENEDOR SWIPER -->
+<div class="swiper mySwiper rounded-xl shadow-lg select-none" style="height: 320px;">
     <div class="swiper-wrapper">
 
         {% for photo in job.photos.all %}
-        <div class="swiper-slide">
+        <div class="swiper-slide flex justify-center items-center bg-black/10">
 
-            <!-- Lazy loading -->
             <img 
-                data-src="{{ photo.photo.url }}" 
+                src="{{ photo.photo.url }}" 
                 alt="Foto del trabajo"
-                class="swiper-lazy w-full h-auto object-cover rounded-xl"
+                class="w-full h-full object-contain rounded-xl"
+                loading="lazy"
             >
 
-            <!-- Preloader minimal -->
-            <div class="swiper-lazy-preloader"></div>
         </div>
         {% endfor %}
 
@@ -58,42 +49,34 @@
     <div class="swiper-button-next"></div>
 </div>
 
-<!-- ========================== -->
-<!-- JS Swiper -->
-<!-- ========================== -->
+<!-- SWIPER JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <script>
-var swiper = new Swiper(".mySwiper", {
-    loop: true,
-    centeredSlides: true,
-    spaceBetween: 20,
+document.addEventListener("DOMContentLoaded", function () {
 
-    // LAZY LOAD OPTIMIZADO
-    lazy: {
-        loadPrevNext: true,
-        loadPrevNextAmount: 1,
-    },
+    new Swiper(".mySwiper", {
+        loop: true,
+        centeredSlides: true,
+        spaceBetween: 20,
+        slidesPerView: 1,
+        speed: 500,
 
-    pagination: {
-        el: ".swiper-pagination",
-        clickable: true
-    },
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
 
-    navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev"
-    },
-
-    slidesPerView: 1,
-    speed: 500,
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+    });
 });
 </script>
 
-<!-- BOTÓN VOLVER -->
 <a href="{% url 'job-list' %}"
-   class="inline-block mt-10 px-4 py-2 rounded-xl bg-secondary text-white font-semibold
-          shadow-md hover:bg-secondary/90 active:scale-95 transition">
+   class="inline-block mt-10 px-4 py-2 rounded-xl bg-secondary text-white font-semibold shadow-md hover:bg-secondary/90 active:scale-95 transition">
     Volver al listado
 </a>
 
