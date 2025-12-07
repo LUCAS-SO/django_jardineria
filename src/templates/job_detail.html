@@ -1,10 +1,8 @@
 {% extends "base.html" %}
-
+{% load duration_filters %}
 {% block title %}UISE - Trabajo: Detalles {{ job.pk }}{% endblock %}
 
 {% block content %}
-
-{% load duration_filters %}
 
 <h2 class="text-xl font-semibold text-primary mb-2">
     {{ job.date }} — {{ job.get_location_display }}
@@ -20,30 +18,117 @@
 
 <hr class="my-6 border-gray-300 dark:border-gray-700">
 
-<h3 class="text-2xl font-semibold text-primary mb-4">Fotos</h3>
+<h3 class="text-2xl font-semibold text-primary mb-4">Galería</h3>
 
-<div class="grid sm:grid-cols-2 gap-6">
-{% for photo in job.photos.all %}
-    <div class="rounded-xl border border-gray-300 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 shadow-sm">
-        
-        <p class="font-medium font-semibold text-secondary mb-2">
-            {{ photo.get_before_after_display }}
-        </p>
+<!-- =========================== -->
+<!-- SWIPER CON TODAS LAS FOTOS -->
+<!-- =========================== -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 
-        <img src="{{ photo.photo.url }}" class="rounded-lg shadow-md w-full object-cover">
+<div class="swiper mySwiper rounded-xl shadow-lg">
+    <div class="swiper-wrapper">
+
+        {% for photo in job.photos.all %}
+        <div class="swiper-slide">
+
+            <!-- Si es BEFORE/AFTER → BeerSlider -->
+            {% if photo.before_after == "before" %}
+                {% with after_photo=job.photos.all|get_after:photo %}
+                
+                {% if after_photo %}
+                <div class="beer-slider my-4" data-beer-label="Antes">
+                    <img src="{{ photo.photo.url }}" alt="Antes">
+
+                    <div class="beer-reveal" data-beer-label="Después">
+                        <img src="{{ after_photo.photo.url }}" alt="Después">
+                    </div>
+                </div>
+                {% else %}
+                    <!-- BEFORE sin AFTER -->
+                    <a href="{{ photo.photo.url }}" 
+                       data-pswp-width="1400" 
+                       data-pswp-height="1000"
+                       target="_blank">
+                        <img src="{{ photo.photo.url }}" class="rounded-lg w-full object-cover"/>
+                    </a>
+                {% endif %}
+
+                {% endwith %}
+
+            {% else %}
+                <!-- Foto común -->
+                <a href="{{ photo.photo.url }}" 
+                   data-pswp-width="1400" 
+                   data-pswp-height="1000"
+                   target="_blank">
+                    <img src="{{ photo.photo.url }}" class="rounded-lg w-full object-cover"/>
+                </a>
+            {% endif %}
+
+        </div>
+        {% endfor %}
     </div>
-{% empty %}
-    <p class="text-gray-500 dark:text-gray-400 col-span-full">
-        No hay fotos para este trabajo.
-    </p>
-{% endfor %}
+
+    <!-- Controles Swiper -->
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
 </div>
 
+<!-- ===================== -->
+<!-- PHOTO SWIPE (LIGHTBOX) -->
+<!-- ===================== -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.css"/>
+
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.min.js" type="module"></script>
+<script type="module">
+    import PhotoSwipeLightbox from "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.min.js";
+
+    const lightbox = new PhotoSwipeLightbox({
+        gallery: '.swiper', 
+        children: 'a',
+        pswpModule: () => import("https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.min.js")
+    });
+    lightbox.init();
+</script>
+
+<!-- ===================== -->
+<!-- BEERSLIDER (Before/After) -->
+<!-- ===================== -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.css">
+<script src="https://cdn.jsdelivr.net/npm/beerslider/dist/beer-slider.js"></script>
+
+<script>
+    window.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.beer-slider').forEach(slider => {
+            new BeerSlider(slider);
+        });
+    });
+</script>
+
+<!-- ===================== -->
+<!-- SWIPER CONFIG -->
+<!-- ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+var swiper = new Swiper(".mySwiper", {
+    loop: true,
+    spaceBetween: 20,
+    pagination: {
+        el: ".swiper-pagination",
+        clickable: true
+    },
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev"
+    }
+});
+</script>
+
+<!-- BTN VOLVER -->
 <a href="{% url 'job-list' %}"
-   class="inline-block mt-8 px-3 py-2 rounded-lg 
-text-secondary font-semibold 
-hover:bg-secondary/10 dark:hover:bg-secondary/20 
-transition">
+   class="inline-block mt-10 px-4 py-2 rounded-xl bg-secondary text-white font-semibold
+          shadow-md hover:bg-secondary/90 active:scale-95 transition">
     Volver al listado
 </a>
 

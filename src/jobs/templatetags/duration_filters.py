@@ -24,3 +24,11 @@ def duration(value):
         return f"{hours}h"
     else:
         return f"{minutes}m"
+    
+@register.filter
+def get_after(photos, before_photo):
+    """Devuelve la foto AFTER correspondiente a una BEFORE (si existe)."""
+    try:
+        return photos.get(before_after="after")
+    except:
+        return None
