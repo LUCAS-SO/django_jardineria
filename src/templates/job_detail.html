@@ -19,31 +19,44 @@
 
 <hr class="my-6 border-gray-300 dark:border-gray-700">
 
-<!-- =========================== -->
-<!-- TITULO + ETIQUETA ANTES/DESPUÉS -->
-<!-- =========================== -->
-<h3 class="text-2xl font-semibold text-primary mb-2 flex items-center gap-3">
+<h3 class="text-2xl font-semibold text-primary mb-2">
     Galería
 </h3>
 
+<!-- ============= -->
 <!-- SWIPER CSS -->
+<!-- ============= -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 
-<!-- CONTENEDOR SWIPER -->
+<!-- ============= -->
+<!-- PHOTOSWIPE CSS -->
+<!-- ============= -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.css"/>
+
+<!-- SWIPER -->
 <div class="swiper mySwiper rounded-xl shadow-lg select-none" style="height: 320px;">
     <div class="swiper-wrapper">
 
         {% for photo in job.photos.all %}
         <div class="swiper-slide flex justify-center items-center bg-black/10 relative">
 
-            <img 
-                src="{{ photo.photo.url }}"
-                alt="Foto del trabajo"
-                class="w-full h-full object-contain rounded-xl"
-                loading="lazy"
+            <!-- ENLACE PARA LIGHTBOX -->
+            <a 
+                href="{{ photo.photo.url }}"
+                data-pswp-width="1600"
+                data-pswp-height="1200"
+                target="_blank"
+                class="block w-full h-full"
             >
 
-            <!-- ETIQUETA ANTES/DESPUES -->
+                <img 
+                    src="{{ photo.photo.url }}"
+                    alt="Foto del trabajo"
+                    class="w-full h-full object-contain rounded-xl cursor-zoom-in"
+                    loading="lazy"
+                >
+            </a>
+
             <span class="absolute top-2 right-2 px-2 py-1 text-xs font-semibold bg-black/60 text-white rounded">
                 {% if photo.before_after == "before" %}Antes{% else %}Después{% endif %}
             </span>
@@ -53,7 +66,6 @@
 
     </div>
 
-    <!-- CONTROLES -->
     <div class="swiper-pagination"></div>
     <div class="swiper-button-prev"></div>
     <div class="swiper-button-next"></div>
@@ -62,7 +74,12 @@
 <!-- SWIPER JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-<script>
+<!-- PHOTOSWIPE JS -->
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.min.js" type="module"></script>
+
+<script type="module">
+import PhotoSwipeLightbox from "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.min.js";
+
 document.addEventListener("DOMContentLoaded", function () {
 
     new Swiper(".mySwiper", {
@@ -71,17 +88,17 @@ document.addEventListener("DOMContentLoaded", function () {
         spaceBetween: 20,
         slidesPerView: 1,
         speed: 500,
-
-        pagination: {
-            el: ".swiper-pagination",
-            clickable: true,
-        },
-
-        navigation: {
-            nextEl: ".swiper-button-next",
-            prevEl: ".swiper-button-prev",
-        },
+        pagination: { el: ".swiper-pagination", clickable: true },
+        navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
     });
+
+    // LIGHTBOX
+    const lightbox = new PhotoSwipeLightbox({
+        gallery: '.mySwiper',
+        children: 'a',
+        pswpModule: () => import("https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.min.js")
+    });
+    lightbox.init();
 });
 </script>
 
