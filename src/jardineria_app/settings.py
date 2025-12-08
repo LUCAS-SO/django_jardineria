@@ -135,6 +135,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # -------------------------
 
 MEDIA_URL = '/media/'
+# Redundante ya que se define en CloudinaryField, pero por si acaso
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 cloudinary.config(

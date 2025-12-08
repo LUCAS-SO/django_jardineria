@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 class Location(models.TextChoices):
     DELEGACION = 'delegacion', 'Delegación'
@@ -25,7 +26,7 @@ class Job(models.Model):
 
 class JobPhoto(models.Model):
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='photos')
-    photo = models.ImageField(upload_to='jobs/%Y/%m/%d/')
+    photo = CloudinaryField('image', folder='job_photos/', resource_type='image',)
     before_after = models.CharField(max_length=6, choices=[('before', 'Antes'), ('after', 'Después')])
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
