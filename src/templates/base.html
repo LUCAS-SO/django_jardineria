@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
     
     <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,7 +17,7 @@
         }
     </style>
     
-    <title>{% block title %}UISE{% endblock %}</title>
+    <title>{% block title %}MEV Lucas Soria{% endblock %}</title>
     
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,10 +45,10 @@
         <!-- LOGO + TÍTULO -->
         <div class="flex items-center gap-4">
             <a href="{% url 'job-list' %}">
-                <img src="{% static 'img/logouise.png' %}" class="w-12 h-12 object-contain hover:opacity-80 transition">
+                <img src="{% static 'img/logo.png' %}" class="w-12 h-12 object-contain hover:opacity-80 transition">
             </a>
             <h1 class="text-2xl font-semibold tracking-wide">
-                UISE - Rio Grande
+                Mantenimiento de Espacios Verdes
             </h1>
         </div>
 
