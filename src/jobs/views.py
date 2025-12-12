@@ -130,16 +130,36 @@ def export_jobs_xlsx(request):
     ws = wb.active
     ws.title = "Trabajos"
 
-    ws.append(['Fecha', 'Locación', 'Duración (min)', 'Descripción'])
+    ws.append(['Fecha', 'Locación', 'Duración (min)', 'Duración (hh:mm)', 'Descripción'])
+
+    total_minutos = 0
+
+    def minutos_a_horas(mins):
+        horas = mins // 60
+        minutos = mins % 60
+        return f"{horas}h {minutos:02d}m"
 
     for job in Job.objects.order_by('-date'):
         ws.append([
             job.date.strftime("%Y-%m-%d"),
             job.get_location_display(),
             job.duration,
+            minutos_a_horas(job.duration),
             job.description,
         ])
+        total_minutos += job.duration
 
+    ws.append([])
+    ws.append(["","TOTAL", f"{total_minutos}m", minutos_a_horas(total_minutos),""])
+
+    # Estilo para el total
+    from openpyxl.styles import Font
+    total_row = ws.max_row
+    ws[f"B{total_row}"].font = Font(bold=True)
+    ws[f"C{total_row}"].font = Font(bold=True)
+    ws[f"D{total_row}"].font = Font(bold=True)
+
+    # Respuesta HTTP
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
@@ -162,7 +182,7 @@ def export_jobs_pdf(request):
     elements = []
 
     # Título
-    title = Paragraph("Reporte de Trabajos - UISE (Lucas Soria)", styles["Title"])
+    title = Paragraph("Reporte de Trabajos - Lucas Soria", styles["Title"])
     elements.append(title)
     elements.append(Paragraph("<br/>", styles["Normal"]))
 
@@ -172,9 +192,12 @@ def export_jobs_pdf(request):
     # Construir tabla
     data = [["Fecha", "Descripción", "Duración"]]
 
+    total_minutes_all = 0
+
     for job in jobs:
         desc = job.description or "N/A"
         dur = int(job.duration) if job.duration else 0
+        total_minutes_all += dur
 
         data.append([
             job.date.strftime("%d/%m/%Y"),
@@ -225,6 +248,19 @@ def export_jobs_pdf(request):
             elements.append(
                 Paragraph(f"<b>{month_str}:</b> {hours}h {minutes}m", styles["Normal"])
             )
+
+    # Total General
+    if total_minutes_all > 0:
+        h = total_minutes_all // 60
+        m = total_minutes_all % 60
+
+        elements.append(Paragraph("<br/>", styles["Normal"]))
+        elements.append(
+            Paragraph(
+            f"<b>Total General:</b> {h}h {m:02d}m",
+            styles["Heading2"]
+            )
+        )
 
     # Construir PDF
     doc.build(elements)
