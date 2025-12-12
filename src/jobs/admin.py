@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Job, JobPhoto, Location
+from .models import Job, JobPhoto, Location, Tag
 
 
 class JobPhotoInline(admin.TabularInline):
@@ -23,6 +23,7 @@ class JobAdmin(admin.ModelAdmin):
     search_fields = ('description',)
     inlines = [JobPhotoInline]
     ordering = ('-date', '-created_at')
+    autocomplete_fields = ('tags',)
 
     def short_description(self, obj):
         return (obj.description[:50] + '...') if len(obj.description) > 50 else obj.description
@@ -37,3 +38,9 @@ class JobPhotoAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" width="100" />', obj.photo.url)
         return "No image"
     thumbnail.allow_tags = True
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+    list_display = ('name',)
+    ordering = ('name',)

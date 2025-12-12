@@ -13,6 +13,7 @@ class Job(models.Model):
     location = models.CharField(max_length=30, choices=Location.choices)
     duration = models.PositiveIntegerField(help_text='Duración en minutos')
     description = models.TextField(blank=True, help_text='Descripción del trabajo')
+    tags = models.ManyToManyField('Tag', blank=True, related_name='jobs')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -36,3 +37,15 @@ class JobPhoto(models.Model):
 
     def __str__(self):
         return f"{self.job} - {self.before_after}"
+    
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        verbose_name = 'Etiqueta'
+        verbose_name_plural = 'Etiquetas'
+        ordering = ['name']
+
+    def __str__(self):
+        return f"#{self.name}"

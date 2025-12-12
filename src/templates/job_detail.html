@@ -71,6 +71,19 @@
     <div class="swiper-button-next"></div>
 </div>
 
+<hr class="my-6 border-gray-300 dark:border-gray-700">
+
+
+{% if job.tags.all %}
+<div class="flex flex-wrap gap-2 mb-4">
+    {% for tag in job.tags.all %}
+        <span class="px-3 py-1 text-sm rounded-full bg-primary/10 text-primary font-medium">
+            #{{ tag.name }}
+        </span>
+    {% endfor %}
+</div>
+{% endif %}
+
 <!-- SWIPER JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
