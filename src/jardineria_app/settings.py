@@ -167,6 +167,10 @@ if not DEBUG:
     X_FRAME_OPTIONS = "DENY"
     CSRF_COOKIE_HTTPONLY = True
 
+    # Protecciones adicionales
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    REFERRER_POLICY = "strict-origin-when-cross-origin"
+
 # Confianza de dominios para CSRF
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
