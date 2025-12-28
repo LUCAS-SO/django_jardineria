@@ -3,8 +3,10 @@ from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
+from django.utils.timezone import now
 from .models import Job
 import os
+
 
 # Exportar a Excel / CSV
 import csv
@@ -32,8 +34,17 @@ def format_minutes(total_minutes):
     minutes = total_minutes % 60
     return hours, minutes
 
+# Application startup time for health check
+APP_STARTED_AT = now()
+
 def health_check(request):
-    return JsonResponse({"status": "ok"})
+    uptime = (now() - APP_STARTED_AT).total_seconds()
+
+    return JsonResponse({
+        "status": "ok",
+        "uptime": uptime,
+        "cold": uptime < 20  # primeros 20 segundos = cold start
+    })
 
 
 # Diccionario para traducir meses al español

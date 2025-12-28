@@ -175,36 +175,26 @@
     </div>
 
     <script>
-      // Si la app ya despertó en esta sesión, saltar splash
-      if (sessionStorage.getItem("app-awake")) {
-        window.location.href = "/jobs/";
-      }
-
-      const MIN_TIME = 900; // ms mínimos visibles del splash
-      const startTime = Date.now();
-
-      async function wakeUp() {
+      async function checkApp() {
         try {
-          await fetch("/health/", { cache: "no-store" });
+          const res = await fetch("/health/", { cache: "no-store" });
+          const data = await res.json();
 
-          const elapsed = Date.now() - startTime;
-          const remaining = Math.max(0, MIN_TIME - elapsed);
+          // Si NO está frío → salta splash
+          if (!data.cold) {
+            window.location.replace("/jobs/");
+            return;
+          }
 
-          setTimeout(() => {
-            sessionStorage.setItem("app-awake", "1");
-            window.location.href = "/jobs/";
-          }, remaining);
+          // Si está frío, esperamos un poco y volvemos a chequear
+          setTimeout(checkApp, 2500);
         } catch (e) {
-          setTimeout(wakeUp, 2500);
+          // Server caído o dormido → seguimos mostrando splash
+          setTimeout(checkApp, 3000);
         }
       }
 
-      // Actualizar mensaje tras 5s
-      setTimeout(() => {
-        document.querySelector("p").innerText = "La app se está iniciando…";
-      }, 5000);
-
-      wakeUp();
+      checkApp();
     </script>
   </body>
 </html>
