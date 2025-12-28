@@ -1,20 +1,25 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from .models import Job
+import os
 
 # Exportar a Excel / CSV
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from openpyxl import Workbook
+from openpyxl.drawing.image import Image as XLImage
+from openpyxl.styles import Font, Alignment
 from datetime import datetime
 
+
 # Exportar a PDF
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
 
 
@@ -26,6 +31,9 @@ def format_minutes(total_minutes):
     hours = total_minutes // 60
     minutes = total_minutes % 60
     return hours, minutes
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 
 # Diccionario para traducir meses al español
@@ -48,6 +56,10 @@ MESES_ES = {
 # ==============================
 # VISTAS WEB
 # ==============================
+
+def splash(request):
+    return render(request, "splash.html")
+
 
 class JobListView(ListView):
     model = Job
@@ -130,8 +142,62 @@ def export_jobs_xlsx(request):
     ws = wb.active
     ws.title = "Trabajos"
 
-    ws.append(['Fecha', 'Locación', 'Duración (min)', 'Duración (hh:mm)', 'Descripción'])
+    # ==========================
+    # ESTILOS
+    # ==========================
+    title_font = Font(size=16, bold=True)
+    subtitle_font = Font(size=12, italic=True)
+    bold_font = Font(bold=True)
+    right_align = Alignment(horizontal="right")
 
+    # ==========================
+    # ENCABEZADO / PORTADA
+    # ==========================
+    ws["A1"] = "Mantenimiento de Espacios Verdes"
+    ws["A1"].font = title_font
+
+    # Mes y año (según fecha actual)
+    now = datetime.now()
+    mes_en = now.strftime("%B")
+    mes_es = MESES_ES.get(mes_en, mes_en)
+    mes_anio = f"{mes_es} {now.strftime('%Y')}"
+
+    ws["A2"] = f'Informe de trabajos realizados – {mes_anio}'
+    ws["A2"].font = subtitle_font
+
+    ws["A3"] = "Lucas Soria"
+    ws["A3"].font = bold_font
+
+    ws["A4"] = f"Fecha de descarga: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+
+    # ==========================
+    # LOGO
+    # ==========================
+    logo_path = os.path.join(settings.BASE_DIR, "static/img/logo.png")
+    if os.path.exists(logo_path):
+        logo = XLImage(logo_path)
+        logo.width = 80
+        logo.height = 80
+        ws.add_image(logo, "E1")
+
+    # Espacio antes de la tabla
+    ws.append([])
+    ws.append([])
+
+    start_table_row = ws.max_row + 1
+
+    # ==========================
+    # CABECERA TABLA
+    # ==========================
+    headers = ['Fecha', 'Locación', 'Duración (min)', 'Duración (hh:mm)', 'Descripción']
+    ws.append(headers)
+
+    for col in range(1, len(headers) + 1):
+        ws.cell(row=start_table_row, column=col).font = bold_font
+
+    # ==========================
+    # DATOS
+    # ==========================
     total_minutos = 0
 
     def minutos_a_horas(mins):
@@ -149,17 +215,37 @@ def export_jobs_xlsx(request):
         ])
         total_minutos += job.duration
 
+    for row in range(start_table_row + 1, ws.max_row + 1):
+        ws[f"D{row}"].alignment = right_align
+
+    # ==========================
+    # TOTAL
+    # ==========================
     ws.append([])
-    ws.append(["","TOTAL", f"{total_minutos}m", minutos_a_horas(total_minutos),""])
+    ws.append(["", "TOTAL", total_minutos, minutos_a_horas(total_minutos), ""])
 
-    # Estilo para el total
-    from openpyxl.styles import Font
     total_row = ws.max_row
-    ws[f"B{total_row}"].font = Font(bold=True)
-    ws[f"C{total_row}"].font = Font(bold=True)
-    ws[f"D{total_row}"].font = Font(bold=True)
 
-    # Respuesta HTTP
+    ws[f"B{total_row}"].font = bold_font
+    ws[f"C{total_row}"].font = bold_font
+    ws[f"D{total_row}"].font = bold_font
+
+    # Alineación a la derecha
+    ws[f"C{total_row}"].alignment = right_align
+    ws[f"D{total_row}"].alignment = right_align
+
+    # ==========================
+    # AJUSTE DE COLUMNAS
+    # ==========================
+    ws.column_dimensions["A"].width = 14
+    ws.column_dimensions["B"].width = 20
+    ws.column_dimensions["C"].width = 16
+    ws.column_dimensions["D"].width = 20
+    ws.column_dimensions["E"].width = 40
+
+    # ==========================
+    # RESPUESTA HTTP
+    # ==========================
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
@@ -177,49 +263,133 @@ def export_jobs_xlsx(request):
 def export_jobs_pdf(request):
     buffer = BytesIO()
 
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+
     styles = getSampleStyleSheet()
     elements = []
 
-    # Título
-    title = Paragraph("Reporte de Trabajos - Lucas Soria", styles["Title"])
-    elements.append(title)
-    elements.append(Paragraph("<br/>", styles["Normal"]))
+    # ==========================
+    # COLORES
+    # ==========================
+    PRIMARY_COLOR = colors.HexColor("#045C7C")
 
-    # Obtener trabajos
+    # ==========================
+    # ESTILOS PERSONALIZADOS
+    # ==========================
+    styles.add(ParagraphStyle(
+        name="TitleCustom",
+        fontSize=18,
+        leading=22,
+        textColor=PRIMARY_COLOR,
+        spaceAfter=12,
+        alignment=1  # center
+    ))
+
+    styles.add(ParagraphStyle(
+        name="SubtitleCustom",
+        fontSize=11,
+        italic=True,
+        spaceAfter=8,
+        alignment=1
+    ))
+
+    styles.add(ParagraphStyle(
+        name="Meta",
+        fontSize=10,
+        spaceAfter=6,
+        alignment=1
+    ))
+
+    styles.add(ParagraphStyle(
+        name="SectionTitle",
+        fontSize=14,
+        textColor=PRIMARY_COLOR,
+        spaceBefore=16,
+        spaceAfter=8
+    ))
+
+    styles.add(ParagraphStyle(
+    name="TableDescription",
+    fontSize=9,
+    leading=12,
+    ))
+
+    # ==========================
+    # PORTADA
+    # ==========================
+    elements.append(
+        Paragraph("Mantenimiento de Espacios Verdes", styles["TitleCustom"])
+    )
+
+    now = datetime.now()
+    mes_en = now.strftime("%B")
+    mes_es = MESES_ES.get(mes_en, mes_en)
+
+    elements.append(
+        Paragraph(
+            f"Informe de trabajos realizados – {mes_es} {now.strftime('%Y')}",
+            styles["SubtitleCustom"]
+        )
+    )
+
+    elements.append(Paragraph("Lucas Soria", styles["Meta"]))
+    elements.append(
+        Paragraph(
+            f"Fecha de descarga: {now.strftime('%d/%m/%Y %H:%M')}",
+            styles["Meta"]
+        )
+    )
+
+    elements.append(Spacer(1, 20))
+
+    # ==========================
+    # TABLA DE TRABAJOS
+    # ==========================
     jobs = Job.objects.all().order_by("-date")
 
-    # Construir tabla
     data = [["Fecha", "Descripción", "Duración"]]
 
     total_minutes_all = 0
 
     for job in jobs:
-        desc = job.description or "N/A"
         dur = int(job.duration) if job.duration else 0
         total_minutes_all += dur
 
+        desc_text = job.description or "N/A"
+
         data.append([
             job.date.strftime("%d/%m/%Y"),
-            desc,
-            f"{dur // 60}h {dur % 60}m"
+            Paragraph(desc_text, styles["TableDescription"]),
+            f"{dur // 60}h {dur % 60:02d}m"
         ])
 
-    # Estilo de tabla
     table = Table(data, colWidths=[80, 300, 80])
-    table_style = TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#045C7C")),
+    table.setStyle(TableStyle([
+        # Header
+        ('BACKGROUND', (0, 0), (-1, 0), PRIMARY_COLOR),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+
+        # Body
         ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)
-    ])
-    table.setStyle(table_style)
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+    ]))
+
     elements.append(table)
 
-    # Totales Mensuales
+    # ==========================
+    # TOTALES MENSUALES
+    # ==========================
     monthly_totals = (
         Job.objects
         .annotate(month=TruncMonth("date"))
@@ -229,46 +399,51 @@ def export_jobs_pdf(request):
     )
 
     if monthly_totals:
-        elements.append(Paragraph("<br/>", styles["Normal"]))
-        elements.append(Paragraph("<b>Totales Mensuales</b>", styles["Heading2"]))
-        elements.append(Paragraph("<br/>", styles["Normal"]))
+        elements.append(Spacer(1, 16))
+        elements.append(Paragraph("Totales Mensuales", styles["SectionTitle"]))
 
         for item in monthly_totals:
             month = item["month"]
             total_minutes = item["total_minutes"] or 0
 
-            hours = total_minutes // 60
-            minutes = total_minutes % 60
+            h = total_minutes // 60
+            m = total_minutes % 60
 
-            # Traducción manual del mes
             mes_en = month.strftime("%B")
             mes_es = MESES_ES.get(mes_en, mes_en)
             month_str = f"{mes_es} {month.strftime('%Y')}"
 
             elements.append(
-                Paragraph(f"<b>{month_str}:</b> {hours}h {minutes}m", styles["Normal"])
+                Paragraph(
+                    f"<b>{month_str}:</b> {h}h {m:02d}m",
+                    styles["Normal"]
+                )
             )
 
-    # Total General
+    # ==========================
+    # TOTAL GENERAL
+    # ==========================
     if total_minutes_all > 0:
         h = total_minutes_all // 60
         m = total_minutes_all % 60
 
-        elements.append(Paragraph("<br/>", styles["Normal"]))
+        elements.append(Spacer(1, 10))
         elements.append(
             Paragraph(
-            f"<b>Total General:</b> {h}h {m:02d}m",
-            styles["Heading2"]
+                f"Total General: {h}h {m:02d}m",
+                styles["SectionTitle"]
             )
         )
 
-    # Construir PDF
+    # ==========================
+    # CONSTRUIR PDF
+    # ==========================
     doc.build(elements)
 
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = (
-        f'attachment; filename="trabajos_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf"'
+        f'attachment; filename="trabajos_{now.strftime("%Y%m%d_%H%M")}.pdf"'
     )
 
     return response

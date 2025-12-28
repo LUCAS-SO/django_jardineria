@@ -1,6 +1,7 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
 
+
 class Location(models.TextChoices):
     DELEGACION = 'delegacion', 'Delegación'
     FARMACIA = 'farmacia', 'Farmacia'

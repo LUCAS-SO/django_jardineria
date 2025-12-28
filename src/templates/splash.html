@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MEV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+      :root {
+        --bg: #045c7c;
+        --fg: #ffffff;
+        --muted: rgba(255, 255, 255, 0.7);
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100svh; /* mobile safe */
+        text-align: center;
+      }
+
+      .box {
+        width: 100%;
+        max-width: 340px;
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      /* Logo texto */
+      .logo {
+        font-size: clamp(28px, 8vw, 42px);
+        font-weight: 600;
+        letter-spacing: 2px;
+        margin-bottom: 4px;
+      }
+
+      .dot {
+        display: inline-block;
+        animation: blink 1.5s infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        80%,
+        100% {
+          opacity: 0;
+        }
+        40% {
+          opacity: 1;
+        }
+      }
+
+      /* SVG */
+      svg {
+        width: min(60vw, 120px);
+        height: auto;
+        margin: 8px 0 4px;
+      }
+
+      p {
+        margin: 4px 0;
+        font-size: clamp(14px, 4vw, 15px);
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      small {
+        margin-top: 20px;
+        font-size: clamp(11px, 3.5vw, 12px);
+        opacity: 0.6;
+      }
+
+      /* Desktop breathing space */
+      @media (min-width: 768px) {
+        .box {
+          gap: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div class="logo">MEV<span class="dot">.</span></div>
+      <svg
+        width="120"
+        height="120"
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="MEV logo animado"
+      >
+        <style>
+          .ring {
+            animation: spin 10s linear infinite;
+            transform-origin: center;
+          }
+
+          .icon {
+            animation: breathe 3s ease-in-out infinite;
+            transform-origin: center;
+          }
+
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+
+          @keyframes breathe {
+            0%,
+            100% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.04);
+            }
+          }
+        </style>
+
+        <!-- Anillo exterior -->
+        <circle
+          cx="100"
+          cy="100"
+          r="82"
+          fill="none"
+          stroke="#1E7F43"
+          stroke-width="4"
+          opacity="0.6"
+          class="ring"
+          stroke-dasharray="420 80"
+        />
+
+        <!-- Icono central -->
+        <g class="icon">
+          <!-- Mangos -->
+          <rect x="52" y="115" width="32" height="60" rx="12" fill="#F5A623" />
+          <rect x="116" y="115" width="32" height="60" rx="12" fill="#F5A623" />
+
+          <!-- Eje -->
+          <circle cx="100" cy="110" r="8" fill="#F7D046" />
+
+          <!-- Hoja / naturaleza -->
+          <path
+            d="M100 28
+               C128 48, 132 92, 100 128
+               C68 92, 72 48, 100 28Z"
+            fill="#7AC943"
+          />
+
+          <!-- Nervadura -->
+          <path
+            d="M100 40 L100 115"
+            stroke="#1E7F43"
+            stroke-width="3"
+            stroke-linecap="round"
+            opacity="0.8"
+          />
+        </g>
+      </svg>
+
+      <p>Preparando la aplicación</p>
+      <p>Esto puede tardar unos segundos</p>
+
+      <small>Mantenimiento de Espacios Verdes</small>
+    </div>
+
+    <script>
+      // Si la app ya despertó en esta sesión, saltar splash
+      if (sessionStorage.getItem("app-awake")) {
+        window.location.href = "/jobs/";
+      }
+
+      const MIN_TIME = 900; // ms mínimos visibles del splash
+      const startTime = Date.now();
+
+      async function wakeUp() {
+        try {
+          await fetch("/health/", { cache: "no-store" });
+
+          const elapsed = Date.now() - startTime;
+          const remaining = Math.max(0, MIN_TIME - elapsed);
+
+          setTimeout(() => {
+            sessionStorage.setItem("app-awake", "1");
+            window.location.href = "/jobs/";
+          }, remaining);
+        } catch (e) {
+          setTimeout(wakeUp, 2500);
+        }
+      }
+
+      // Actualizar mensaje tras 5s
+      setTimeout(() => {
+        document.querySelector("p").innerText = "La app se está iniciando…";
+      }, 5000);
+
+      wakeUp();
+    </script>
+  </body>
+</html>
