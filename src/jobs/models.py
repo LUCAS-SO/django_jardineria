@@ -7,6 +7,8 @@ class Location(models.TextChoices):
     FARMACIA = 'farmacia', 'Farmacia'
     OPTICA = 'optica', 'Óptica'
     OTRO = 'otro', 'Otro'
+    EXTERIOR = 'exterior', 'Exterior'
+    INTERIOR = 'interior', 'Interior'
 
 
 class Job(models.Model):
