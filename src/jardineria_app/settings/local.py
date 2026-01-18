@@ -1,11 +1,12 @@
 from .base import *
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-#-------------------------
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+# -------------------------
 # DATABASE (LOCAL)
-#-------------------------
+# -------------------------
 
 DATABASES = {
     "default": {
@@ -15,7 +16,23 @@ DATABASES = {
 }
 
 # -------------------------
-# STATIC (DEV)
+# MEDIA (LOCAL)
 # -------------------------
 
-STATICFILES_DIRS = [BASE_DIR / 'static']
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# -------------------------
+# LOGGING (DEV)
+# -------------------------
+
+LOGGING = {
+    "version": 1,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
+}

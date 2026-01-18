@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
+from django.views.decorators.cache import never_cache
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from django.utils.timezone import now
 from .models import Job
 import os
-
 
 # Exportar a Excel / CSV
 import csv
@@ -15,7 +15,6 @@ from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.styles import Font, Alignment
 from datetime import datetime
-
 
 # Exportar a PDF
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -37,14 +36,17 @@ def format_minutes(total_minutes):
 # Application startup time for health check
 APP_STARTED_AT = now()
 
+@never_cache
 def health_check(request):
     uptime = (now() - APP_STARTED_AT).total_seconds()
 
     return JsonResponse({
         "status": "ok",
         "uptime": uptime,
-        "cold": uptime < 20  # primeros 20 segundos = cold start
-    })
+        "cold": uptime < 5  # cold start hardcoded
+    },
+    status=200
+)
 
 
 # Diccionario para traducir meses al español

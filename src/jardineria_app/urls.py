@@ -6,7 +6,7 @@ from jobs.views import JobListView, JobDetailView, export_jobs_csv, export_jobs_
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("health/", health_check, name="health"),
+    path("health/", health_check, name="health_check"),
     path("", splash, name="splash"),
     path('jobs/', JobListView.as_view(), name='job-list'),
     path('jobs/<int:pk>/', JobDetailView.as_view(), name='job-detail'),
